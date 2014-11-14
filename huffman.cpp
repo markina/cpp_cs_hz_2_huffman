@@ -59,19 +59,17 @@ void Huffman::compression()
     std::cout<< "\n";
     print_vector_cnt();
 
-    int begin_vector = 0;
-    while(begin_vector < vector.size() - 1) {
-        Node first = vector[begin_vector];
-        Node second = vector[begin_vector + 1];
-        Node *newNode = new Node(first.cnt + second.cnt, first.string + second.string);
-        newNode->left_child = new Node(first);
-        newNode->right_child = new Node(second);
-        vector[begin_vector + 1] = new Node (newNode);
-        begin_vector++;
+    Node root = get_tree();
 
-        sort(vector.begin() + begin_vector, vector.end(), comp);
+    for(int i = 0;  i < MAX_NUM_BY_CHAR; i++) {
+        code_by_char[i] = "";
     }
 
+    count_code_by_char(root, "");
+
+    print_code_by_char();
+
+    coding_code_by_char_for_send();
 
 }
 
@@ -89,8 +87,6 @@ Node::Node(int cnt, std::string string)  : cnt(cnt), string(string)
 
 void Huffman::read_vector_cnt_by_char()
 {
-
-
     //debug in_file /////////////////////////////
     std::string in_string = "coffecoff";/////////
     /////////////////////////////////////////////
@@ -127,4 +123,52 @@ Node::Node(Node *pNode)
     left_child = pNode->left_child;
     right_child = pNode->right_child;
     string = pNode->string;
+}
+
+Node Huffman::get_tree()
+{
+
+    int begin_vector = 0;
+    while(begin_vector < vector.size() - 1) {
+        Node first = vector[begin_vector];
+        Node second = vector[begin_vector + 1];
+        Node *newNode = new Node(first.cnt + second.cnt, first.string + second.string);
+        newNode->left_child = new Node(first);
+        newNode->right_child = new Node(second);
+        vector[begin_vector + 1] = new Node (newNode);
+        begin_vector++;
+        sort(vector.begin() + begin_vector, vector.end(), comp);
+    }
+
+    return new Node(vector[begin_vector]);
+}
+
+void Huffman::count_code_by_char(Node node, std::string cur_string)
+{
+
+
+    if(node.left_child == NULL) {
+        char c = node.string[0];
+        code_by_char[(int)c] = cur_string;
+        return;
+    }
+
+    count_code_by_char(node.left_child, cur_string + "0");
+    count_code_by_char(node.right_child, cur_string + "1");
+}
+
+void Huffman::print_code_by_char()
+{
+    std::cout << "\n";
+    for(int i = 0; i < MAX_NUM_BY_CHAR; i++) {
+        if(code_by_char[i].length() != 0) {
+            std::cout << char(i) << "!!!" << code_by_char[i] << std::endl;
+        }
+    }
+}
+
+void Huffman::coding_code_by_char_for_send()
+{
+    ... todo ??
+
 }

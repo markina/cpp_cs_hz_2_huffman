@@ -42,6 +42,8 @@ private:
 
     int cnt[MAX_NUM_BY_CHAR]{0};
 
+    std::string code_by_char[MAX_NUM_BY_CHAR];
+
     void read_vector_cnt_by_char();
 
     std::vector<Node> vector;
@@ -49,6 +51,13 @@ private:
     void print_vector_cnt();
 
 
+    Node get_tree();
+
+    void count_code_by_char(Node, std::string);
+
+    void print_code_by_char();
+
+    void coding_code_by_char_for_send();
 };
 
 void print_usage();
