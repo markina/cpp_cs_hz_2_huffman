@@ -66,17 +66,44 @@ void Huffman::compression()
     }
 
     count_code_by_char(root, "");
-
     print_code_by_char();
-
     coding_code_by_char_for_send();
-
 }
 
 
 
 void Huffman::decompression()
 {
+
+////////
+    read_vector_cnt_by_char();  ///////
+    std::sort(vector.begin(), vector.end(), comp); ////////
+    std::cout<< "\n"; ////////////
+    print_vector_cnt(); ///////////////
+
+    Node root = get_tree(); /////////////
+
+    for(int i = 0;  i < MAX_NUM_BY_CHAR; i++) { ///
+        code_by_char[i] = "";
+    }
+
+    count_code_by_char(root, "");//
+    print_code_by_char(); //
+    coding_code_by_char_for_send(); ///
+    //////////
+    //compression();
+
+    std::string code = "11110001101111000";
+
+    std::string result = "";
+
+    for (int i = 0; i < code.length(); ) {
+        char c = get_letter(i, root, code);
+        result += c;
+        i += code_by_char[c].length();
+    }
+
+    std::cout << result << "!!!!!!!!!!!!!!!!!!!\n";
 
 }
 
@@ -162,13 +189,39 @@ void Huffman::print_code_by_char()
     std::cout << "\n";
     for(int i = 0; i < MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i].length() != 0) {
-            std::cout << char(i) << "!!!" << code_by_char[i] << std::endl;
+            std::cout << (char)(i) << "!!!" << code_by_char[i] << std::endl;
         }
     }
 }
 
 void Huffman::coding_code_by_char_for_send()
 {
-    ... todo ??
+   // ... todo ??
+}
 
+Node Huffman::get_tree_from_file()
+{
+    /// todo change
+    read_vector_cnt_by_char();
+    std::sort(vector.begin(), vector.end(), comp);
+    std::cout<< "\n";
+    print_vector_cnt();
+
+    Node root = get_tree();
+    return root;
+
+    ///
+}
+
+char Huffman::get_letter(int position, Node node, std::string code)
+{
+    if(node.left_child == NULL) {
+        return node.string[0];
+    }
+    if(code[position] == '1') {
+        return get_letter(position+1, node.right_child, code);
+    }
+    if(code[position] == '0') {
+        return get_letter(position+1, node.left_child, code);
+    }
 }

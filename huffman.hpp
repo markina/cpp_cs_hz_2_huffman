@@ -58,6 +58,10 @@ private:
     void print_code_by_char();
 
     void coding_code_by_char_for_send();
+
+    Node get_tree_from_file();
+
+    char get_letter(int i, Node node, std::string code);
 };
 
 void print_usage();
