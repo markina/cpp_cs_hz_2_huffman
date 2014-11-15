@@ -5,61 +5,26 @@
 #include <cstring>
 #include <algorithm>
 
-Node::Node()
-{
-    cnt = 0;
+Node::Node() { string = ""; cnt = 0; left_child = NULL; right_child = NULL; }
+Node::Node(int cnt, std::string string)  : cnt(cnt), string(string) { left_child = NULL; right_child = NULL; }
+Node::~Node() {}
+
+Huffman::Huffman() { for(int i = 0; i < MAX_NUM_BY_CHAR; ++i) {cnt[i] = 0; } }
+Huffman::~Huffman() {
+    //delete [] buffer;
 }
 
-
-void print_usage()
-{
-    std::cout << USAGE << std::endl;
-}
-
-Huffman::Huffman()
-{
-
-}
-
-Node::~Node()
-{
-
-}
-
-Huffman::~Huffman()
-{
-
-}
-
-void Huffman::put_files(char *in, char *out)
+void Huffman::compression(char * in, char * out)
 {
     in_file = in;
     out_file = out;
-}
 
-void Huffman::run()
-{
-    if(is_decompression) {
-        decompression();
-    }
-    else {
-        compression();
-    }
-
-}
-
-bool comp (Node a, Node b) {
-    return a.cnt < b.cnt;
-}
-
-void Huffman::compression()
-{
-    read_vector_cnt_by_char();
-    std::sort(vector.begin(), vector.end(), comp);
-    std::cout<< "\n";
+    read_buffer();
+    create_vector_cnt_by_char();
+    std::sort(leaves.begin(), leaves.end(), compare);
     print_vector_cnt();
 
-    Node root = get_tree();
+    get_tree();
 
     for(int i = 0;  i < MAX_NUM_BY_CHAR; i++) {
         code_by_char[i] = "";
@@ -67,59 +32,68 @@ void Huffman::compression()
 
     count_code_by_char(root, "");
     print_code_by_char();
-    coding_code_by_char_for_send();
+    send_code_by_char();
+    send_message();
 }
 
 
 
-void Huffman::decompression()
+void Huffman::decompression(char * in, char * out)
 {
 
-////////
-    read_vector_cnt_by_char();  ///////
-    std::sort(vector.begin(), vector.end(), comp); ////////
-    std::cout<< "\n"; ////////////
-    print_vector_cnt(); ///////////////
+    in_file = in;
+    out_file = out;
 
-    Node root = get_tree(); /////////////
+    read_buffer();
+    int begin_code=  extract_vector_cnt_by_char();
 
-    for(int i = 0;  i < MAX_NUM_BY_CHAR; i++) { ///
-        code_by_char[i] = "";
-    }
-
-    count_code_by_char(root, "");//
-    print_code_by_char(); //
-    coding_code_by_char_for_send(); ///
-    //////////
-    //compression();
-
-    std::string code = "11110001101111000";
+    //char * code = buffer + begin_code;
+    std::string code = "011";
 
     std::string result = "";
 
-    for (int i = 0; i < code.length(); ) {
+    for (size_t i = 0; i < code.length(); ) {
         char c = get_letter(i, root, code);
         result += c;
-        i += code_by_char[c].length();
+        i += (int)code_by_char[c].length();
     }
 
     std::cout << result << "!!!!!!!!!!!!!!!!!!!\n";
 
 }
 
-Node::Node(int cnt, std::string string)  : cnt(cnt), string(string)
-{
- // (:
+void Huffman::read_buffer() {
+    std::ifstream in("/home/rita/studies/cppcs/cpp_cs_hz_2_huffman/res/in.txt", std::ifstream::binary);
+    if(in)
+    {
+        in.seekg(0, in.end);
+        length_buffer = (int) in.tellg();
+        in.seekg(0, in.beg);
+
+        buffer = new char[length_buffer];
+
+        //std::cout << "Reading " << length_buffer << " characters... ";
+
+        in.read(buffer, length_buffer);
+
+        if (in)
+        {
+            //std::cout << "all characters read successfully.\n";
+        }
+        else
+        {
+            //std::cout << "error: only " << in.gcount() << " could be read"; //todo
+        }
+        in.close();
+    }
 }
 
-void Huffman::read_vector_cnt_by_char()
-{
-    //debug in_file /////////////////////////////
-    std::string in_string = "coffecoff";/////////
-    /////////////////////////////////////////////
 
-    for(int i = 0; i < in_string.length(); ++i) {
-        int num_by_char = in_string[i];
+void Huffman::create_vector_cnt_by_char()
+{
+
+    for(int i = 0; i < length_buffer; ++i) {
+        int num_by_char = buffer[i];
         cnt[num_by_char]++;
     }
 
@@ -128,7 +102,7 @@ void Huffman::read_vector_cnt_by_char()
             char t = (char) i;
             std::string s (1, t);
             Node node(cnt[i], s);
-            vector.push_back(node);
+            leaves.push_back(node);
         }
     }
 
@@ -138,8 +112,8 @@ void Huffman::read_vector_cnt_by_char()
 
 void Huffman::print_vector_cnt()
 {
-    for(int i = 0; i < vector.size(); i++) {
-        std::cout << vector[i].string << "!!!" << vector[i].cnt << std::endl;
+    for(int i = 0; i < leaves.size(); i++) {
+        //std::cout << leaves[i].string << "!!!" << leaves[i].cnt << std::endl;
     }
 }
 
@@ -152,27 +126,36 @@ Node::Node(Node *pNode)
     string = pNode->string;
 }
 
-Node Huffman::get_tree()
+void Huffman::get_tree()
 {
+    if(leaves.size() == 0) {
+        return;
+    }
 
-    int begin_vector = 0;
-    while(begin_vector < vector.size() - 1) {
-        Node first = vector[begin_vector];
-        Node second = vector[begin_vector + 1];
+    size_t iterrator = 0;
+    while(iterrator < leaves.size() - 1) {
+        Node first = new Node (leaves[iterrator]);
+        Node second = new Node (leaves[iterrator + 1]);
         Node *newNode = new Node(first.cnt + second.cnt, first.string + second.string);
         newNode->left_child = new Node(first);
         newNode->right_child = new Node(second);
-        vector[begin_vector + 1] = new Node (newNode);
-        begin_vector++;
-        sort(vector.begin() + begin_vector, vector.end(), comp);
+        leaves[iterrator + 1] = new Node (newNode);
+        iterrator++;
+        for(size_t j = iterrator; j < leaves.size() - 1; j++) {
+            if(leaves[j].cnt > leaves[j+1].cnt) {
+                std::swap(leaves[j], leaves[j+1]);
+            } else {
+                break;
+            }
+        }
+        sort(leaves.begin() + iterrator, leaves.end(), compare); //todo good sort
     }
 
-    return new Node(vector[begin_vector]);
+    root = new Node(leaves[iterrator]);
 }
 
 void Huffman::count_code_by_char(Node node, std::string cur_string)
 {
-
 
     if(node.left_child == NULL) {
         char c = node.string[0];
@@ -186,31 +169,23 @@ void Huffman::count_code_by_char(Node node, std::string cur_string)
 
 void Huffman::print_code_by_char()
 {
-    std::cout << "\n";
+    //std::cout << "\n";
     for(int i = 0; i < MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i].length() != 0) {
-            std::cout << (char)(i) << "!!!" << code_by_char[i] << std::endl;
+            std::cout << (char)(i) << "->" << code_by_char[i] << std::endl;
         }
     }
 }
 
-void Huffman::coding_code_by_char_for_send()
+void Huffman::send_code_by_char()
 {
    // ... todo ??
 }
 
 Node Huffman::get_tree_from_file()
 {
-    /// todo change
-    read_vector_cnt_by_char();
-    std::sort(vector.begin(), vector.end(), comp);
-    std::cout<< "\n";
-    print_vector_cnt();
-
-    Node root = get_tree();
+    //todo
     return root;
-
-    ///
 }
 
 char Huffman::get_letter(int position, Node node, std::string code)
@@ -224,4 +199,21 @@ char Huffman::get_letter(int position, Node node, std::string code)
     if(code[position] == '0') {
         return get_letter(position+1, node.left_child, code);
     }
+
+    return '?';
+
+}
+
+bool compare(Node a, Node b) { return a.cnt < b.cnt; }
+void print_usage() {std::cout << USAGE << std::endl; }
+
+void Huffman::send_message()
+{
+
+}
+
+int Huffman::extract_vector_cnt_by_char()
+{
+    //todo
+    return 0;
 }
