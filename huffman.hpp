@@ -5,64 +5,115 @@
 const std::string USAGE = "USAGE: ./huffman [-c|-u] [-f file_name] [-o output]";
 
 struct Node {
-
     Node();
     ~Node();
 
     Node(Node *pNode);
-    Node(int cnt, std::string string);
+    Node(int cnt, char ch);
 
-    std::string string;
+    char ch;
     int cnt;
     Node * left_child;
     Node * right_child;
+
+    static bool compare(Node a, Node b);
+};
+//
+//struct Coder {
+//    void send_code_by_char();
+//    Node get_tree_from_file();
+//
+//    char get_letter(int i, Node node, std::string code);
+//
+//
+//
+//    int get_message();
+//
+//    int extract_vector_cnt_by_char();
+//
+//    std::string get_string_by_char(char i);
+//
+//    void get_out_buffer(std::string []);
+//
+//    Node extract_tree(ReadWriter writer);
+//
+//    void write_out_buffer();
+//};
+
+struct ReadWriter
+{
+    ReadWriter();
+
+    ReadWriter(char *in, char *out);
+
+    static int const MAX_NUM_BY_CHAR = 256;
+
+    char * in_file;
+    char * out_file;
+    std::vector<char> in_string;
+    std::vector<char> out_string;
+
+    //std::vector<char> vector_for_buffer;
+    void read_in_string();
+
+
+    void send();
 };
 
 struct Huffman {
-    static int const MAX_NUM_BY_CHAR = 256;
+    Huffman(char *in, char *out);
 
-public:
-    void compression(char * in, char * out);
-    void decompression(char * in, char * out);
+    static void print_usage();
+
+    std::vector<Node> leaves;
 
     Huffman() ;
     ~Huffman();
 
-private:
-    char * in_file;
-    char * out_file;
-    char * buffer;
-    char * result_buffer;
-    int length_buffer;
-    int length_result_buffer;
+protected:
+    ReadWriter read_writer;
 
-    int cnt[MAX_NUM_BY_CHAR];
-
-    void create_vector_cnt_by_char();
-
-    std::vector<Node> leaves;
-    void get_tree();
+    std::string code_by_char[ReadWriter::MAX_NUM_BY_CHAR];
     Node root;
 
+    //int cnt[ReadWriter::MAX_NUM_BY_CHAR];
+    //void get_leaves();
+    //std::vector<Node> leaves;
+    //void print_vector_cnt(); //
+    //void print_code_by_char(); //
+    //void rec_code_by_char(Node node, std::string string);
 
-    void count_code_by_char(Node, std::string);
 
-    std::string code_by_char[MAX_NUM_BY_CHAR];
-
-    void send_code_by_char();
-    Node get_tree_from_file();
-
-    char get_letter(int i, Node node, std::string code);
-
-    void print_vector_cnt();
-    void print_code_by_char();
-
-    void send_message();
-
-    void read_buffer();
-
-    int extract_vector_cnt_by_char();
 };
 
-void print_usage();
-bool compare(Node a, Node b);
+struct Compression:public Huffman {
+    Compression(char *in, char *out);
+
+    void compression();
+
+private:
+    std::vector<Node> get_leaves();
+
+    void get_tree();
+    void get_code_by_char();
+
+    void rec_code_by_char(Node node, std::string cur_string);
+
+    void get_out_buffer();
+
+    void put_code_by_char();
+
+    void put_massage();
+
+    void get_string_by_number(int n);
+
+    int get_size_massege();
+};
+
+struct Decompression:public Huffman {
+    Decompression(char *in, char *out);
+
+    void decompression();
+    void get_tree();
+    void get_code_by_char();
+};

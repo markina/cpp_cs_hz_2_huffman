@@ -3,10 +3,9 @@
 
 int main(int argc, char ** argv)
 {
-    Huffman archiver;
 
     if(argc < 6) {
-        print_usage();
+        Huffman::print_usage();
         return 1;
     }
 
@@ -16,7 +15,7 @@ int main(int argc, char ** argv)
     } else if (std::string(argv[1]) == "-c") {
         is_decompression = false;
     } else {
-        print_usage();
+        Huffman::print_usage();
         return 1;
     }
 
@@ -29,15 +28,17 @@ int main(int argc, char ** argv)
         in = argv[3];
         out = argv[5];
     } else {
-        print_usage();
+        Huffman::print_usage();
         return 1;
     }
 
     if(is_decompression) {
-        archiver.decompression(in, out);
+        Decompression archiver(in, out);
+        archiver.decompression();
     }
     else {
-        archiver.compression(in, out);
+        Compression archiver(in, out);
+        archiver.compression();
     }
 
 
