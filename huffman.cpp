@@ -38,7 +38,11 @@ void Compression::compression() {
 void Decompression::decompression() {
     read_writer.read_in_string();
 
-//    root = read_writer.extract_tree();
+    int first_index_code = get_code_by_char();
+
+    get_tree();
+
+    int k = 0;
 //
 //    read_writer.get_out_buffer();
 //    read_writer.write_out_buffer();
@@ -48,7 +52,7 @@ void Decompression::decompression() {
 void ReadWriter::read_in_string() {
     char *in_buffer = nullptr;
     int length_in_buffer = 0;
-    std::ifstream in("/home/rita/studies/cppcs/cpp_cs_hz_2_huffman/res/in.txt", std::ifstream::binary);
+    std::ifstream in("/home/rita/studies/cppcs/cpp_cs_hz_2_huffman/res/new.txt", std::ifstream::binary);
     if(in)
     {
         in.seekg(0, in.end);
@@ -178,7 +182,7 @@ void Compression::get_string_by_number(int n ){
     std::vector<char> t;
 
     while(n > 0) {
-        t.push_back((char)'0' + n%10);
+        t.push_back(char((int)'0' + n%10));
         n /= 10;
     }
 
@@ -291,12 +295,46 @@ void Compression::get_out_buffer()
 
 void Decompression::get_tree()
 {
-
+    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
+        if(code_by_char[i] != "")
+        {
+            add_new_leave(i, 0, code_by_char[i], root);
+        }
+    }
 }
 
-void Decompression::get_code_by_char()
+int Decompression::get_code_by_char()
 {
+    int n = 0;
+    int i = 0;
+    for(; i < read_writer.in_string.size(); ++i) {
+        if(read_writer.in_string[i] == ' ') {
+            i++;
+            break;
+        }
+        n *= 10;
+        n += read_writer.in_string[i] - '0';
+    }
 
+    std::cout << "n = " << n << "\n"; //
+
+    for(int j = 0; j < 256; ++j) {
+        code_by_char[j] = "";
+    }
+
+    for(int x = 0; x < n; ++x) {
+        int id_char = (int)read_writer.in_string[i];
+        i++;
+        for(; i < read_writer.in_string.size(); ++i) {
+            if(read_writer.in_string[i] == ' ') {
+                i++;
+                break;
+            }
+            code_by_char[id_char].push_back(read_writer.in_string[i]);
+        }
+    }
+
+    print_code_by_char(code_by_char);
 }
 void Huffman::print_usage() {std::cout << USAGE << std::endl; }
 
@@ -362,16 +400,21 @@ void Compression::put_massage()
     }
 
 
+    print_out_string(read_writer.out_string);
 }
 
 void ReadWriter::send()
 {
-    std::ofstream outfile ("/home/rita/studies/cppcs/cpp_cs_hz_2_huffman/res/new.txt", std::ofstream::binary);
+    std::ofstream outfile ("/home/rita/studies/cppcs/cpp_cs_hz_2_huffman/res/in.txt", std::ofstream::binary);
 
-    int size = out_string.size();
+    unsigned long size =  out_string.size();
     char buffer[size];
 
-    outfile.write (buffer,size);
+    for(int j = 0; j < size; ++j) {
+        buffer[j] = out_string[j];
+    }
+
+    outfile.write(buffer,size);
 
     //delete[] buffer;
 
@@ -387,3 +430,46 @@ int Compression::get_size_massege()
     }
     return s;
 }
+
+void Decompression::add_new_leave(int id_char, int l, std::string string, Node & node)
+{
+    for (int i = l; i < string.size(); i++)
+    {
+        if (string[i] == '0')
+        {
+            if (node.left_child != NULL)
+            { //todo left_child
+                if (i == string.size() - 1)
+                {
+                    node.left_child = new Node(0, id_char);
+                    return;
+                }
+            }
+            else
+            {
+                node.left_child = new Node(0, '?');
+                add_new_leave(id_char, l + 1, string, (Node &) node.left_child);
+            }
+
+
+        }
+        if (string[i] == '1')
+        {
+            if (node.right_child != NULL)
+            {
+                if (i == string.size() - 1)
+                {
+                    node.right_child = new Node(0, id_char);
+                    return;
+                }
+            }
+            else
+            {
+                node.right_child = new Node(0, '?');
+                add_new_leave(id_char, l + 1, string, (Node &) node.right_child);
+            }
+        }
+
+    }
+}
+

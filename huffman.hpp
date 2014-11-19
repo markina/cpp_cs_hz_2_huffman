@@ -113,7 +113,11 @@ private:
 struct Decompression:public Huffman {
     Decompression(char *in, char *out);
 
+
+
     void decompression();
     void get_tree();
-    void get_code_by_char();
+    int get_code_by_char();
+
+    void add_new_leave(int id_char, int l, std::string string, Node & node);
 };
