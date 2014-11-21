@@ -74,7 +74,7 @@ protected:
     ReadWriter read_writer;
 
     std::string code_by_char[ReadWriter::MAX_NUM_BY_CHAR];
-    Node root;
+    Node * root;
 
     //int cnt[ReadWriter::MAX_NUM_BY_CHAR];
     //void get_leaves();
@@ -105,7 +105,7 @@ private:
 
     void put_massage();
 
-    void get_string_by_number(int n);
+    void put_string_by_number(int n);
 
     int get_size_massege();
 };
@@ -113,11 +113,13 @@ private:
 struct Decompression:public Huffman {
     Decompression(char *in, char *out);
 
-
-
     void decompression();
     void get_tree();
     int get_code_by_char();
 
-    void add_new_leave(int id_char, int l, std::string string, Node & node);
+    void add_new_leave(int id_char, int l, std::string string, Node * node);
+
+    void put_decode_massage(int begin);
+
+    char get_letter(int position, Node * node);
 };
