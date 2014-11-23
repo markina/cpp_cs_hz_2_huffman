@@ -23,14 +23,18 @@ Huffman::~Huffman() {    /*delete [] buffer;*/ }
 
 void Compression::compression() {
     read_writer.read_in_string();
-    leaves = get_leaves();
+    get_leaves();
 
-    get_tree();
+
+
+    get_tree(leaves);
 
     get_code_by_char();
 
     put_code_by_char();
+
     put_massage();
+
     read_writer.send();
 }
 
@@ -50,7 +54,7 @@ void Decompression::decompression() {
 void ReadWriter::read_in_string() {
     char *in_buffer = nullptr;
     int length_in_buffer = 0;
-    std::ifstream in("/home/rita/studies/cppcs/cpp_cs_hz_2_huffman/res/out.txt", std::ifstream::binary);
+    std::ifstream in(in_file, std::ifstream::binary);
     if(in)
     {
         in.seekg(0, in.end);
@@ -82,17 +86,26 @@ void ReadWriter::read_in_string() {
 void print_vector_cnt(std::vector<Node> leaves)
 {
     for(int i = 0; i < leaves.size(); i++) {
-        std::cout << leaves[i].ch << "!!!" << leaves[i].cnt << std::endl;
+        std::cout << "Count: " << leaves[i].ch << " = " << leaves[i].cnt << std::endl;
     }
 }
 
 
-std::vector<Node> Compression::get_leaves()
+int Compression::get_size_msg()
+{
+    int s = 0;
+    for(int i = 0; i < leaves.size(); i++) {
+        int num_char = (int)leaves[i].ch > 0 ? (int)leaves[i].ch : (-(int)leaves[i].ch) + 128;
+        s += leaves[i].cnt * code_by_char[num_char].length();
+    }
+    return s;
+}
+
+void Compression::get_leaves()
 {
     int cnt[ReadWriter::MAX_NUM_BY_CHAR];
-    std::vector<Node> leaves;
 
-    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; ++i) {
+    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; ++i) {
         cnt[i] = 0;
     }
 
@@ -101,7 +114,7 @@ std::vector<Node> Compression::get_leaves()
         cnt[num_by_char]++;
     }
 
-    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
         if(cnt[i] != 0) {
             Node node(cnt[i], (char) i);
             leaves.push_back(node);
@@ -109,17 +122,17 @@ std::vector<Node> Compression::get_leaves()
     }
     std::sort(leaves.begin(), leaves.end(), Node::compare);
     print_vector_cnt(leaves);
-    return leaves;
 }
 
 
 
 
-void Compression::get_tree()
+void Compression::get_tree(std::vector<Node> leaves)
 {
     if(leaves.size() == 0) {
         return;
     }
+
 
     size_t iterrator = 0;
     while(iterrator < leaves.size() - 1) {
@@ -146,15 +159,15 @@ void Compression::get_tree()
 void print_code_by_char(std::string code_by_char[])
 {
     std::cout << "\n";
-    for(int i = 0; i < 256; i++) {
+    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i].length() != 0) {
-            std::cout << (char)(i) << "->" << code_by_char[i] << std::endl;
+            std::cout << "Code: " << (char)(i) << "->" << code_by_char[i] << std::endl;
         }
     }
 }
 
 void Compression::get_code_by_char() {
-    for(int i = 0;  i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(int i = 0;  i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
         code_by_char[i] = "";
     }
 
@@ -165,9 +178,9 @@ void Compression::get_code_by_char() {
 
 void Compression::rec_code_by_char(Node node, std::string cur_string)
 {
-    if(node.left_child == nullptr) {
+    if(node.left_child == nullptr && node.right_child == nullptr) {
         char c = node.ch;
-        code_by_char[(int)c] = cur_string;
+        code_by_char[c > 0 ? c : (-c) + 128]  = cur_string;
         return;
     }
 
@@ -200,16 +213,16 @@ void print_out_string(std::vector<char> vector)
     std::cout << std::endl;
 }
 
-char Decompression::get_letter(int position, Node * node)
+char Decompression::get_letter(int position, std::vector<bool> & in_byte, Node * node)
 {
-    if(node->left_child == nullptr) {
+    if(node->left_child == nullptr && node->right_child == nullptr) {
         return node->ch;
     }
-    if(read_writer.in_string[position] == '1') {
-        return get_letter(position+1, node->right_child);
+    if(in_byte[position]) {
+        return get_letter(position+1, in_byte, node->right_child);
     }
-    if(read_writer.in_file[position] == '0') {
-        return get_letter(position+1, node->left_child);
+    if(!in_byte[position]) {
+        return get_letter(position+1, in_byte, node->left_child);
     }
 
     return '?';
@@ -225,7 +238,7 @@ ReadWriter::ReadWriter(char *in, char *out) :in_file(in), out_file(out) {}
 void Decompression::get_tree()
 {
     root = new Node();
-    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i] != "")
         {
             add_new_leave(i, 0, code_by_char[i], root);
@@ -248,23 +261,24 @@ int Decompression::get_code_by_char()
 
     std::cout << "n = " << n << "\n"; //
 
-    for(int j = 0; j < 256; ++j) {
+    for(int j = 0; j <= ReadWriter::MAX_NUM_BY_CHAR; ++j) {
         code_by_char[j] = "";
     }
 
     for(int x = 0; x < n; ++x) {
-        int id_char = (int)read_writer.in_string[i];
+        int num_char = read_writer.in_string[i] > 0 ? read_writer.in_string[i] : (-read_writer.in_string[i]) + 128;;
         i++;
         for(; i < read_writer.in_string.size(); ++i) {
             if(read_writer.in_string[i] == ' ') {
                 i++;
                 break;
             }
-            code_by_char[id_char].push_back(read_writer.in_string[i]);
+            code_by_char[num_char].push_back(read_writer.in_string[i]);
         }
     }
 
     print_code_by_char(code_by_char);
+    return i;
 }
 void Huffman::print_usage() {std::cout << USAGE << std::endl; }
 
@@ -279,7 +293,7 @@ void Compression::put_code_by_char()
     int n = leaves.size();
     put_string_by_number(n);
     read_writer.out_string.push_back(' ');
-    for(size_t i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(size_t i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i].length() != 0) {
             read_writer.out_string.push_back(char(i));
             for(int j = 0; j < code_by_char[i].length(); j++) {
@@ -304,16 +318,19 @@ void Compression::put_code_by_char()
 
 void Compression::put_massage()
 {
-    int size_massage = get_size_massege();
-    int excess_zero = 8 - size_massage%8;
-    put_string_by_number(excess_zero);
+    int size_massage = get_size_msg();
+    int excess_zero = 8 - (size_massage % 8);
+
+    read_writer.out_string.push_back('0' + excess_zero);
+
     std::vector<int> one_and_zero;
     for(int i =0; i < excess_zero; i++) {
         one_and_zero.push_back(0);
     }
     for(int i = 0; i < read_writer.in_string.size(); ++i) {
-        for(int j = 0; j < code_by_char[read_writer.in_string[i]].length(); j++) {
-            if(code_by_char[read_writer.in_string[i]][j] == '0') {
+        int num_char = read_writer.in_string[i] > 0 ? read_writer.in_string[i] : (-read_writer.in_string[i]) + 128;
+        for(int j = 0; j < code_by_char[num_char].length(); j++) {
+            if(code_by_char[num_char][j] == '0') {
                 one_and_zero.push_back(0);
             } else {
                 one_and_zero.push_back(1);
@@ -323,8 +340,14 @@ void Compression::put_massage()
 
     for(int i = 0; i < one_and_zero.size(); ) {
         int id_char = 0;
-        for(int j = 1; j < 256; j *= 2) {
-            id_char += one_and_zero[i] * j;
+        for(int j = 128; j > 0; j /= 2) {
+            if(j == 128) {
+                id_char += one_and_zero[i] * (-j);
+            }
+            else
+            {
+                id_char += one_and_zero[i] * j;
+            }
             i++;
         }
         read_writer.out_string.push_back((char)id_char);
@@ -336,7 +359,7 @@ void Compression::put_massage()
 
 void ReadWriter::send()
 {
-    std::ofstream outfile ("/home/rita/studies/cppcs/cpp_cs_hz_2_huffman/res/in.txt", std::ofstream::binary);
+    std::ofstream outfile (out_file, std::ofstream::binary);
 
     unsigned long size =  out_string.size();
     char buffer[size];
@@ -352,16 +375,6 @@ void ReadWriter::send()
     outfile.close();
 }
 
-
-int Compression::get_size_massege()
-{
-    int s = 0;
-    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
-        s += leaves[i].cnt * code_by_char[(int)leaves[i].ch].size();
-    }
-    return s;
-}
-
 void Decompression::add_new_leave(int id_char, int l, std::string string, Node * node)
 {
     for (int i = l; i < string.length(); i++)
@@ -369,7 +382,7 @@ void Decompression::add_new_leave(int id_char, int l, std::string string, Node *
         if (string[i] == '0')
         {
             if (node->left_child == nullptr)
-            { //todo check only left_child
+            {
                 if (i == string.length() - 1)
                 {
                     node->left_child = new Node(0, id_char);
@@ -426,10 +439,22 @@ void print_decode_massage(std::vector<char> vector)
 
 void Decompression::put_decode_massage(int begin)
 {
-    for(int i = begin; i < read_writer.in_string.size();) {
-        char c = get_letter(i, root);
-        read_writer.out_string.push_back(c);
-        i += (int)code_by_char[c].length();
+    char c = read_writer.in_string[begin];
+    int bad_zero = c - '0';
+
+    std::vector<bool> in_byte;
+    for(int i = begin + 1; i < read_writer.in_string.size(); i++) {
+        char c = read_writer.in_string[i];
+        get_vector_byte_by_char(in_byte, bad_zero, c);
+        bad_zero = 0;
+    }
+
+    int i = 0;
+    while(i < in_byte.size())
+    {
+        char t = get_letter(i, in_byte, root);
+        read_writer.out_string.push_back(t);
+        i += code_by_char[t > 0 ? t : (-t) + 128].length();
     }
 
     print_decode_massage(read_writer.out_string);
@@ -437,3 +462,28 @@ void Decompression::put_decode_massage(int begin)
 }
 
 
+void Decompression::get_vector_byte_by_char(std::vector<bool> &in_byte, int left_byte, char c)
+{
+    int num = c;
+    for(int i = 128; i > 0; i /= 2) {
+        if(left_byte > 0) {
+            left_byte--;
+            num %= i;
+
+        }
+        else
+        {
+            if(i == 128) {
+                in_byte.push_back(num < 0);
+                num += 128;
+            }
+            else
+            {
+                in_byte.push_back((bool) (num / i));
+                num %= i;
+            }
+        }
+    }
+
+
+}

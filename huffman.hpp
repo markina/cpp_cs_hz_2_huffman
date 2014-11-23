@@ -92,9 +92,9 @@ struct Compression:public Huffman {
     void compression();
 
 private:
-    std::vector<Node> get_leaves();
+    void get_leaves();
 
-    void get_tree();
+    void get_tree(std::vector<Node> leaves);
     void get_code_by_char();
 
     void rec_code_by_char(Node node, std::string cur_string);
@@ -107,7 +107,7 @@ private:
 
     void put_string_by_number(int n);
 
-    int get_size_massege();
+    int get_size_msg();
 };
 
 struct Decompression:public Huffman {
@@ -121,5 +121,7 @@ struct Decompression:public Huffman {
 
     void put_decode_massage(int begin);
 
-    char get_letter(int position, Node * node);
+    void get_vector_byte_by_char(std::vector<bool> & in_byte, int left_byte, char c);
+
+    char get_letter(int position, std::vector<bool> & in_byte, Node * node);
 };
