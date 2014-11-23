@@ -1,13 +1,13 @@
-#include <vector>
-
 #pragma once
+
+#include <vector>
 
 const std::string USAGE = "USAGE: ./huffman [-c|-u] [-f file_name] [-o output]";
 
-struct Node {
+struct Node
+{
     Node();
     ~Node();
-
     Node(Node *pNode);
     Node(int cnt, char ch);
 
@@ -18,72 +18,53 @@ struct Node {
 
     static bool compare(Node a, Node b);
 };
-//
-//struct Coder {
-//    void send_code_by_char();
-//    Node get_tree_from_file();
-//
-//    char get_letter(int i, Node node, std::string code);
-//
-//
-//
-//    int get_message();
-//
-//    int extract_vector_cnt_by_char();
-//
-//    std::string get_string_by_char(char i);
-//
-//    void get_out_buffer(std::string []);
-//
-//    Node extract_tree(ReadWriter writer);
-//
-//    void write_out_buffer();
-//};
 
-struct ReadWriter
+struct Reader
 {
-    ReadWriter();
-
-    ReadWriter(char *in, char *out);
-
-    static int const MAX_NUM_BY_CHAR = 256;
-
     char * in_file;
-    char * out_file;
     std::vector<char> in_string;
-    std::vector<char> out_string;
 
-    //std::vector<char> vector_for_buffer;
     void read_in_string();
 
-
-    void send();
+    Reader(char *in);
+    Reader();
 };
 
-struct Huffman {
-    Huffman(char *in, char *out);
+struct Writer
+{
+    char * out_file;
+    std::vector<char> out_string;
 
-    static void print_usage();
+    void send();
+
+    Writer();
+    Writer(char *out);
+};
+
+struct Huffman
+{
+    static int const MAX_NUM_BY_CHAR = 256;
 
     std::vector<Node> leaves;
 
+    int cast_char_to_int(char ch);
+    char cast_int_to_char(int n);
+
+
+    static void print_usage();
+
+    Huffman(char *in, char *out);
     Huffman() ;
     ~Huffman();
 
 protected:
-    ReadWriter read_writer;
+    Reader reader;
+    Writer writer;
 
-    std::string code_by_char[ReadWriter::MAX_NUM_BY_CHAR];
+    std::string code_by_char[MAX_NUM_BY_CHAR];
     Node * root;
 
-    //int cnt[ReadWriter::MAX_NUM_BY_CHAR];
-    //void get_leaves();
-    //std::vector<Node> leaves;
-    //void print_vector_cnt(); //
-    //void print_code_by_char(); //
-    //void rec_code_by_char(Node node, std::string string);
-
-
+    int OFFSET = 128;
 };
 
 struct Compression:public Huffman {
