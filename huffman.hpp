@@ -99,8 +99,6 @@ private:
 
     void rec_code_by_char(Node node, std::string cur_string);
 
-    void get_out_buffer();
-
     void put_code_by_char();
 
     void put_massage();

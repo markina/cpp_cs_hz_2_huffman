@@ -95,8 +95,7 @@ int Compression::get_size_msg()
 {
     int s = 0;
     for(int i = 0; i < leaves.size(); i++) {
-        int num_char = (int)leaves[i].ch > 0 ? (int)leaves[i].ch : (-(int)leaves[i].ch) + 128;
-        s += leaves[i].cnt * code_by_char[num_char].length();
+        s += leaves[i].cnt * code_by_char[(int)leaves[i].ch].length();
     }
     return s;
 }
@@ -105,7 +104,7 @@ void Compression::get_leaves()
 {
     int cnt[ReadWriter::MAX_NUM_BY_CHAR];
 
-    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; ++i) {
+    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; ++i) {
         cnt[i] = 0;
     }
 
@@ -114,7 +113,7 @@ void Compression::get_leaves()
         cnt[num_by_char]++;
     }
 
-    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
         if(cnt[i] != 0) {
             Node node(cnt[i], (char) i);
             leaves.push_back(node);
@@ -159,7 +158,7 @@ void Compression::get_tree(std::vector<Node> leaves)
 void print_code_by_char(std::string code_by_char[])
 {
     std::cout << "\n";
-    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(int i = 0; i < 256; i++) {
         if(code_by_char[i].length() != 0) {
             std::cout << "Code: " << (char)(i) << "->" << code_by_char[i] << std::endl;
         }
@@ -167,7 +166,7 @@ void print_code_by_char(std::string code_by_char[])
 }
 
 void Compression::get_code_by_char() {
-    for(int i = 0;  i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(int i = 0;  i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
         code_by_char[i] = "";
     }
 
@@ -180,7 +179,7 @@ void Compression::rec_code_by_char(Node node, std::string cur_string)
 {
     if(node.left_child == nullptr && node.right_child == nullptr) {
         char c = node.ch;
-        code_by_char[c > 0 ? c : (-c) + 128]  = cur_string;
+        code_by_char[(int)c] = cur_string;
         return;
     }
 
@@ -238,7 +237,7 @@ ReadWriter::ReadWriter(char *in, char *out) :in_file(in), out_file(out) {}
 void Decompression::get_tree()
 {
     root = new Node();
-    for(int i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(int i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i] != "")
         {
             add_new_leave(i, 0, code_by_char[i], root);
@@ -261,19 +260,19 @@ int Decompression::get_code_by_char()
 
     std::cout << "n = " << n << "\n"; //
 
-    for(int j = 0; j <= ReadWriter::MAX_NUM_BY_CHAR; ++j) {
+    for(int j = 0; j < 256; ++j) {
         code_by_char[j] = "";
     }
 
     for(int x = 0; x < n; ++x) {
-        int num_char = read_writer.in_string[i] > 0 ? read_writer.in_string[i] : (-read_writer.in_string[i]) + 128;;
+        int id_char = (int)read_writer.in_string[i];
         i++;
         for(; i < read_writer.in_string.size(); ++i) {
             if(read_writer.in_string[i] == ' ') {
                 i++;
                 break;
             }
-            code_by_char[num_char].push_back(read_writer.in_string[i]);
+            code_by_char[id_char].push_back(read_writer.in_string[i]);
         }
     }
 
@@ -293,7 +292,7 @@ void Compression::put_code_by_char()
     int n = leaves.size();
     put_string_by_number(n);
     read_writer.out_string.push_back(' ');
-    for(size_t i = 0; i <= ReadWriter::MAX_NUM_BY_CHAR; i++) {
+    for(size_t i = 0; i < ReadWriter::MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i].length() != 0) {
             read_writer.out_string.push_back(char(i));
             for(int j = 0; j < code_by_char[i].length(); j++) {
@@ -328,9 +327,8 @@ void Compression::put_massage()
         one_and_zero.push_back(0);
     }
     for(int i = 0; i < read_writer.in_string.size(); ++i) {
-        int num_char = read_writer.in_string[i] > 0 ? read_writer.in_string[i] : (-read_writer.in_string[i]) + 128;
-        for(int j = 0; j < code_by_char[num_char].length(); j++) {
-            if(code_by_char[num_char][j] == '0') {
+        for(int j = 0; j < code_by_char[read_writer.in_string[i]].length(); j++) {
+            if(code_by_char[read_writer.in_string[i]][j] == '0') {
                 one_and_zero.push_back(0);
             } else {
                 one_and_zero.push_back(1);
@@ -454,7 +452,7 @@ void Decompression::put_decode_massage(int begin)
     {
         char t = get_letter(i, in_byte, root);
         read_writer.out_string.push_back(t);
-        i += code_by_char[t > 0 ? t : (-t) + 128].length();
+        i += code_by_char[t].length();
     }
 
     print_decode_massage(read_writer.out_string);
