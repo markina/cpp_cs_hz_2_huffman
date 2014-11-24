@@ -123,17 +123,16 @@ void Compression::get_tree(std::vector<Node> leaves)
     while(i_leaves < leaves.size() - 1) {
         Node * first = new Node (leaves[i_leaves]);
         Node * second = new Node (leaves[i_leaves + 1]);
-        Node * newNode = new Node(first->cnt + second->cnt, first->ch);
-        newNode->left_child = new Node(first);
-        newNode->right_child = new Node(second);
-        leaves[i_leaves + 1] = new Node (newNode);
+        Node *nNode = new Node(first->cnt + second->cnt, first->ch);
+        nNode->left_child = new Node(first);
+        nNode->right_child = new Node(second);
+        leaves[i_leaves + 1] = Node (nNode);
         i_leaves++;
         delete first;
         delete second;
-
-        //delete newNode->left_child;
-        //delete newNode->right_child;
-        delete newNode;
+        //delete nNode->left_child;
+        //delete nNode->right_child;
+        delete nNode;
         for(size_t j = i_leaves; j < leaves.size() - 1; j++) {
             if(leaves[j].cnt > leaves[j+1].cnt) {
                 std::swap(leaves[j], leaves[j+1]);
@@ -484,6 +483,7 @@ Huffman::Huffman(char *in, char *out) : reader(in), writer(out) {}
 Huffman::Huffman() {  }
 Huffman::~Huffman() {
     delete_tree();
+
 }
 Writer::Writer() {}
 Reader::Reader() {}

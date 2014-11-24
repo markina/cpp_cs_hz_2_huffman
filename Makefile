@@ -9,3 +9,6 @@ run_decompression:
 
 valgrind_c:
 	valgrind ./huffman -c -f my_in_file.txt -o my_out_file.txt
+
+valgrind_u:
+	valgrind ./huffman -u -f my_out_file.txt -o my_in_file.txt
