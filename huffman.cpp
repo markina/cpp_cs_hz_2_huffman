@@ -464,11 +464,7 @@ void Reader::read_in_string() {
 
         in.read(in_buffer, length_in_buffer);
 
-        if (in)
-        {
-            //std::cout << "all characters read successfully.\n";
-        }
-        else
+        if (!in)
         {
             throw ExceptionSameCharactersNotRead();
         }
@@ -486,7 +482,7 @@ void Reader::read_in_string() {
     throw ExceptionFileNotFound();
 }
 
-void Writer::send()
+void Writer::send() const
 {
     std::ofstream outfile (out_file, std::ofstream::binary);
 

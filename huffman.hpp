@@ -35,7 +35,7 @@ struct Writer
     char * out_file;
     std::vector<char> out_string;
 
-    void send();
+    void send() const ;
 
     Writer();
     Writer(char *out);
@@ -44,14 +44,7 @@ struct Writer
 struct Huffman
 {
     static size_t const MAX_NUM_BY_CHAR = 256;
-    const int OFFSET = 128;
-
-    std::vector<Node> leaves;
-
-    int cast_char_to_int(const char ch) const;
-    char cast_int_to_char(const int n) const;
-    int cast_char_to_real_int(const char ch) const;
-
+    static size_t const OFFSET = 128;
 
     static void print_usage();
 
@@ -65,13 +58,17 @@ protected:
 
     std::string code_by_char[MAX_NUM_BY_CHAR];
     Node * root;
+    std::vector<Node> leaves;
 
     void clear_code_by_char();
 
+    int cast_char_to_int(const char ch) const;
+    char cast_int_to_char(const int n) const;
+    int cast_char_to_real_int(const char ch) const;
     char cast_real_int_to_char(int n);
 
+private:
     void delete_tree();
-
     void rec_delete_tree(Node * pNode);
 };
 
@@ -81,21 +78,13 @@ struct Compression:public Huffman {
 
 private:
     void get_leaves();
-
     void get_tree(std::vector<Node> leaves);
-
     void get_code_by_char();
-
     void rec_code_by_char(Node node, std::string cur_string);
-
     void put_code_by_char();
-
     void put_massage();
-
     void put_string_by_number(int n);
-
     int get_size_msg();
-
     char get_char_from_8_byte(int begin, std::vector<bool> &byte);
 };
 
@@ -104,19 +93,12 @@ struct Decompression:public Huffman {
     void decompression();
 
 private:
-
     void get_tree();
-
     int get_code_by_char();
-
     void add_new_leave(int id_char, int l, std::string string, Node * node);
-
     void put_decode_massage(size_t begin);
-
     void get_vector_byte_by_char(std::vector<bool> & in_byte, int left_byte, char c);
-
     size_t get_letter(size_t position, std::vector<bool> & in_byte, Node * node);
-
     void get_vector_byte_by_char(std::vector<bool> &in_byte, char c);
 };
 
