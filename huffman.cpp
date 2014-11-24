@@ -12,21 +12,38 @@ void print_vector_cnt(std::vector<Node> leaves)
     }
 }
 
-void print_code_by_char(std::string code_by_char[])
+void print_byte(std::vector<bool> byte) {
+    std::cout << "bute: ";
+    for(int i = 0; i < byte.size(); i++) {
+        std::cout << byte[i];
+    }
+    std::cout << std::endl;
+}
+
+void Huffman::print_code_by_char(std::string code_by_char[])
 {
     std::cout << "\n";
     for(int i = 0; i < 256; i++) {
         if(code_by_char[i].length() != 0) {
-            std::cout << "Code: " << (char)(i) << "->" << code_by_char[i] << std::endl;
+            std::cout << "Code: " << cast_int_to_char(i) << "->" << code_by_char[i] << std::endl;
         }
     }
 }
 
-void print_out_string(std::vector<char> vector)
+void print_out_string(std::vector<char> out_string)
 {
     std::cout << std::endl;
-    for(int i = 0; i < vector.size(); i++) {
-        std::cout << vector[i];
+    for(int i = 0; i < out_string.size(); i++) {
+        std::cout << out_string[i];
+    }
+    std::cout << std::endl;
+}
+
+void print_in_string(std::vector<char> in_string)
+{
+    std::cout << std::endl;
+    for(int i = 0; i < in_string.size(); i++) {
+    std::cout << in_string[i];
     }
     std::cout << std::endl;
 }
@@ -43,6 +60,7 @@ void print_decode_massage(std::vector<char> vector)
 
 void Compression::compression() {
     reader.read_in_string();
+
 
     get_leaves();
 
@@ -109,9 +127,7 @@ void Compression::get_tree(std::vector<Node> leaves)
 
 
 void Compression::get_code_by_char() {
-    for(int i = 0;  i < MAX_NUM_BY_CHAR; i++) {
-        code_by_char[i] = "";
-    }
+    clear_code_by_char();
 
     rec_code_by_char(root, "");
 
@@ -121,13 +137,18 @@ void Compression::get_code_by_char() {
 void Compression::rec_code_by_char(Node node, std::string cur_string)
 {
     if(node.left_child == nullptr && node.right_child == nullptr) {
-        char c = node.ch;
-        code_by_char[(int)c] = cur_string;
+        code_by_char[cast_char_to_int(node.ch)] = cur_string;
         return;
     }
 
-    rec_code_by_char(node.left_child, cur_string + "0");
-    rec_code_by_char(node.right_child, cur_string + "1");
+    if(node.left_child != nullptr)
+    {
+        rec_code_by_char(node.left_child, cur_string + "0");
+    }
+    if(node.right_child != nullptr)
+    {
+        rec_code_by_char(node.right_child, cur_string + "1");
+    }
 }
 
 
@@ -135,23 +156,17 @@ int Compression::get_size_msg()
 {
     int s = 0;
     for(int i = 0; i < leaves.size(); i++) {
-        s += leaves[i].cnt * code_by_char[(int)leaves[i].ch].length();
+        s += leaves[i].cnt * code_by_char[cast_char_to_int((int)leaves[i].ch)].length();
     }
     return s;
 }
 
-
-
-
-
 void Compression::put_string_by_number(int n){
     std::vector<char> t;
-
     while(n > 0) {
         t.push_back(char((int)'0' + n%10));
         n /= 10;
     }
-
 
     for(int i = t.size() - 1; i>= 0; i--) {
         writer.out_string.push_back(t[i]);
@@ -162,87 +177,74 @@ void Compression::put_string_by_number(int n){
 
 void Compression::put_code_by_char()
 {
-
     int n = leaves.size();
     put_string_by_number(n);
     writer.out_string.push_back(' ');
-    for(size_t i = 0; i < MAX_NUM_BY_CHAR; i++) {
+
+    for(int i = 0; i < MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i].length() != 0) {
-            writer.out_string.push_back(char(i));
+            writer.out_string.push_back(cast_int_to_char(i));
             for(int j = 0; j < code_by_char[i].length(); j++) {
-                if(code_by_char[i].length() != 0)
+                if (code_by_char[i][j] == '1')
                 {
-                    if (code_by_char[i][j] == '1')
-                    {
-                        writer.out_string.push_back('1');
-                    } else
-                    {
-                        writer.out_string.push_back('0');
-                    }
+                    writer.out_string.push_back('1');
+                } else
+                {
+                    writer.out_string.push_back('0');
                 }
             }
             writer.out_string.push_back(' ');
         }
     }
-
     print_out_string(writer.out_string);
-
 }
 
 void Compression::put_massage()
 {
     int size_massage = get_size_msg();
     int excess_zero = 8 - (size_massage % 8);
-
     writer.out_string.push_back('0' + excess_zero);
 
-    std::vector<int> one_and_zero;
+    std::vector<bool> out_byte;
     for(int i =0; i < excess_zero; i++) {
-        one_and_zero.push_back(0);
+        out_byte.push_back(0);
     }
+
     for(int i = 0; i < reader.in_string.size(); ++i) {
-        for(int j = 0; j < code_by_char[reader.in_string[i]].length(); j++) {
-            if(code_by_char[reader.in_string[i]][j] == '0') {
-                one_and_zero.push_back(0);
+        for(int j = 0; j < code_by_char[cast_char_to_int(reader.in_string[i])].length(); j++) {
+            if(code_by_char[cast_char_to_int(reader.in_string[i])][j] == '0') {
+                out_byte.push_back(0);
             } else {
-                one_and_zero.push_back(1);
+                out_byte.push_back(1);
             }
         }
     }
 
-    for(int i = 0; i < one_and_zero.size(); ) {
-        int id_char = 0;
-        for(int j = 128; j > 0; j /= 2) {
-            if(j == 128) {
-                id_char += one_and_zero[i] * (-j);
-            }
-            else
-            {
-                id_char += one_and_zero[i] * j;
-            }
-            i++;
-        }
-        writer.out_string.push_back((char)id_char);
+    for(int i = 0; i < out_byte.size(); i += 8) {
+        writer.out_string.push_back(get_char_from_8_byte(i, out_byte));
     }
 
+    print_byte(out_byte);
 
     print_out_string(writer.out_string);
 }
 
 
-char Decompression::get_letter(int position, std::vector<bool> & in_byte, Node * node)
+int Decompression::get_letter(int position, std::vector<bool> & in_byte, Node * node)
 {
     if(node->left_child == nullptr && node->right_child == nullptr) {
-        return node->ch;
+        writer.out_string.push_back(node->ch);
+        return position;
     }
     if(in_byte[position]) {
-        return get_letter(position+1, in_byte, node->right_child);
+        return get_letter(position + 1, in_byte, node->right_child);
     }
     if(!in_byte[position]) {
-        return get_letter(position+1, in_byte, node->left_child);
+        return get_letter(position + 1, in_byte, node->left_child);
     }
 
-    return '?';
+
+    return 0;
 
 }
 
@@ -272,6 +274,8 @@ void Decompression::get_tree()
 
 int Decompression::get_code_by_char()
 {
+    print_in_string(reader.in_string);
+
     int n = 0;
     int i = 0;
     for(; i < reader.in_string.size(); ++i) {
@@ -285,12 +289,10 @@ int Decompression::get_code_by_char()
 
     std::cout << "n = " << n << "\n"; //
 
-    for(int j = 0; j < 256; ++j) {
-        code_by_char[j] = "";
-    }
+    clear_code_by_char();
 
     for(int x = 0; x < n; ++x) {
-        int id_char = (int)reader.in_string[i];
+        int id_char = cast_char_to_int(reader.in_string[i]);
         i++;
         for(; i < reader.in_string.size(); ++i) {
             if(reader.in_string[i] == ' ') {
@@ -318,7 +320,7 @@ void Decompression::add_new_leave(int id_char, int l, std::string string, Node *
             {
                 if (i == string.length() - 1)
                 {
-                    node->left_child = new Node(0, id_char);
+                    node->left_child = new Node(0, cast_int_to_char(id_char));
                     return;
                 }
                 else
@@ -341,7 +343,7 @@ void Decompression::add_new_leave(int id_char, int l, std::string string, Node *
             {
                 if (i == string.length() - 1)
                 {
-                    node->right_child = new Node(0, id_char);
+                    node->right_child = new Node(0, cast_int_to_char(id_char));
                     return;
                 }
                 else
@@ -368,49 +370,85 @@ void Decompression::put_decode_massage(int begin)
     int bad_zero = c - '0';
 
     std::vector<bool> in_byte;
-    for(int i = begin + 1; i < reader.in_string.size(); i++) {
+
+    char ch = reader.in_string[begin + 1];
+    get_vector_byte_by_char(in_byte, bad_zero, ch);
+
+
+    ///////////////stop
+    for(int i = begin + 2; i < reader.in_string.size(); i++) {
         char c = reader.in_string[i];
-        get_vector_byte_by_char(in_byte, bad_zero, c);
-        bad_zero = 0;
+        get_vector_byte_by_char(in_byte, c);
     }
+
+    print_byte(in_byte);
 
     int i = 0;
     while(i < in_byte.size())
     {
-        char t = get_letter(i, in_byte, root);
-        writer.out_string.push_back(t);
-        i += code_by_char[t].length();
+        i = get_letter(i, in_byte, root);
+
+        //i += code_by_char[t].length();
     }
+
+
 
     print_decode_massage(writer.out_string);
 
 }
 
+void Decompression::get_vector_byte_by_char(std::vector<bool> &in_byte, char c) {
 
-void Decompression::get_vector_byte_by_char(std::vector<bool> &in_byte, int left_byte, char c)
+    int num = cast_char_to_real_int(c);
+    for(int i = 128; i > 0; i /= 2) {
+            if(i == 128) {
+                in_byte.push_back(num < 0);
+                if(num < 0)
+                {
+                    num += 128;
+                }
+            }
+            else
+            {
+                in_byte.push_back((num / i) == 1);
+                num %= i;
+            }
+    }
+}
+
+void Decompression::get_vector_byte_by_char(std::vector<bool> & in_byte, int left_byte, char c)
 {
-    int num = c;
+    int num = cast_char_to_real_int(c);
+
     for(int i = 128; i > 0; i /= 2) {
         if(left_byte > 0) {
+            if(i == 128) {
+                if(num < 0)
+                {
+                    num += 128;
+                }
+            }
+            else {
+                num %= i;
+            }
             left_byte--;
-            num %= i;
-
         }
         else
         {
             if(i == 128) {
                 in_byte.push_back(num < 0);
-                num += 128;
+                if(num < 0)
+                {
+                    num += 128;
+                }
             }
             else
             {
-                in_byte.push_back((bool) (num / i));
+                in_byte.push_back((num / i) == 1);
                 num %= i;
             }
         }
     }
-
-
 }
 
 Decompression::Decompression(char *in, char *out) : Huffman(in, out) {}
@@ -491,7 +529,43 @@ int Huffman::cast_char_to_int(char ch)
     return ((int)ch) + OFFSET;
 }
 
+int Huffman::cast_char_to_real_int(char ch)
+{
+    return ((int)ch);
+}
+
+
 char Huffman::cast_int_to_char(int n)
 {
     return (char)(n - OFFSET);
+}
+
+char Huffman::cast_real_int_to_char(int n)
+{
+    return (char)(n);
+}
+
+char Compression::get_char_from_8_byte(int begin, std::vector<bool> & byte)
+{
+    int id_char = 0;
+    int end = begin + 8;
+    for(int j = 128; j > 0, begin < end; begin++, j /= 2) {
+        if(j == 128) {
+            id_char += byte[begin] * (-j);
+        }
+        else
+        {
+            id_char += byte[begin] * j;
+        }
+    }
+    return cast_real_int_to_char(id_char);
+}
+
+void Huffman::clear_code_by_char()
+{
+
+    for(int j = 0; j < MAX_NUM_BY_CHAR; ++j) {
+        code_by_char[j] = "";
+    }
+
 }
