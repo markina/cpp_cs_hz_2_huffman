@@ -5,65 +5,18 @@
 #include <cstring>
 #include <algorithm>
 
-//void print_vector_cnt(std::vector<Node> leaves)
-//{
-//    for(int i = 0; i < leaves.size(); i++) {
-//        std::cout << "Count: " << leaves[i].ch << " = " << leaves[i].cnt << std::endl;
-//    }
-//}
-//
-//void print_byte(std::vector<bool> byte) {
-//    std::cout << "bute: ";
-//    for(int i = 0; i < byte.size(); i++) {
-//        std::cout << byte[i];
-//    }
-//    std::cout << std::endl;
-//}
-//
-//void Huffman::print_code_by_char(std::string code_by_char[])
-//{
-//    std::cout << "\n";
-//    for(int i = 0; i < 256; i++) {
-//        if(code_by_char[i].length() != 0) {
-//            std::cout << "Code: " << cast_int_to_char(i) << "->" << code_by_char[i] << std::endl;
-//        }
-//    }
-//}
-//
-//void print_out_string(std::vector<char> out_string)
-//{
-//    std::cout << std::endl;
-//    for(int i = 0; i < out_string.size(); i++) {
-//        std::cout << out_string[i];
-//    }
-//    std::cout << std::endl;
-//}
-//
-//void print_in_string(std::vector<char> in_string)
-//{
-//    std::cout << std::endl;
-//    for(int i = 0; i < in_string.size(); i++) {
-//    std::cout << in_string[i];
-//    }
-//    std::cout << std::endl;
-//}
-//
-//void print_decode_massage(std::vector<char> vector)
-//{
-//    std::cout << "result::::::";
-//    for(int i = 0; i < vector.size(); i++) {
-//        std::cout << vector[i];
-//    }
-//
-//}
-
-
-int Compression::compression() {
-    int ret = reader.read_in_string();
-    if(ret != 0) {
+void Compression::compression() {
+    try
+    {
+        reader.read_in_string();
+    } catch (ExceptionFileNotFound exception) {
         root = new Node();
-        return 1;
+        throw ExceptionFileNotFound();
+    } catch (ExceptionSameCharactersNotRead exception) {
+        root = new Node();
+        throw ExceptionSameCharactersNotRead();
     }
+
 
     std::cout << reader.in_string.size() << std::endl;
 
@@ -84,9 +37,6 @@ int Compression::compression() {
     std::cout << size_addition << std::endl;
 
     writer.send();
-
-    return 0;
-
 }
 
 void Compression::get_leaves()
@@ -109,7 +59,6 @@ void Compression::get_leaves()
         }
     }
     std::sort(leaves.begin(), leaves.end(), Node::compare);
-    //print_vector_cnt(leaves);
 }
 
 
@@ -137,8 +86,6 @@ void Compression::get_tree(std::vector<Node> leaves)
         i_leaves++;
         delete first;
         delete second;
-        //delete nNode->left_child;
-        //delete nNode->right_child;
         delete nNode;
         for(size_t j = i_leaves; j < leaves.size() - 1; j++) {
             if(leaves[j].cnt > leaves[j+1].cnt) {
@@ -159,8 +106,6 @@ void Compression::get_code_by_char() {
 
 
     rec_code_by_char(root, "");
-
-    //print_code_by_char(code_by_char);
 }
 
 void Compression::rec_code_by_char(Node node, std::string cur_string)
@@ -276,11 +221,13 @@ size_t Decompression::get_letter(size_t position, std::vector<bool> & in_byte, N
 }
 
 
-int Decompression::decompression() {
-    int ret = reader.read_in_string();
-    if(ret != 0) {
+void Decompression::decompression() {
+    try
+    {
+        reader.read_in_string();
+    } catch (ExceptionFileNotFound exceptionFileNotFound) {
         root = new Node();
-        return 1;
+        throw ExceptionFileNotFound();
     }
 
     std::cout << reader.in_string.size() << std::endl;
@@ -296,7 +243,6 @@ int Decompression::decompression() {
     std::cout << first_index_massage << std::endl;
 
     writer.send();
-    return 0;
 }
 
 void Decompression::get_tree()
@@ -312,8 +258,6 @@ void Decompression::get_tree()
 
 int Decompression::get_code_by_char()
 {
-    //print_in_string(reader.in_string);
-
     int n = 0;
     size_t i = 0;
     for(; i < reader.in_string.size(); ++i) {
@@ -324,8 +268,6 @@ int Decompression::get_code_by_char()
         n *= 10;
         n += reader.in_string[i] - '0';
     }
-
-    //std::cout << "n = " << n << "\n"; //
 
     clear_code_by_char();
 
@@ -340,8 +282,6 @@ int Decompression::get_code_by_char()
             code_by_char[id_char].push_back(reader.in_string[i]);
         }
     }
-
-    //print_code_by_char(code_by_char);
     return i;
 }
 
@@ -412,8 +352,6 @@ void Decompression::put_decode_massage(size_t begin)
     char ch = reader.in_string[begin + 1];
     get_vector_byte_by_char(in_byte, bad_zero, ch);
 
-
-    ///////////////stop
     for(size_t i = begin + 2; i < reader.in_string.size(); i++) {
         char c = reader.in_string[i];
         get_vector_byte_by_char(in_byte, c);
@@ -425,8 +363,6 @@ void Decompression::put_decode_massage(size_t begin)
     while(i < in_byte.size())
     {
         i = get_letter(i, in_byte, root);
-
-        //i += code_by_char[t].length();
     }
 
 
@@ -512,9 +448,9 @@ Node::Node(Node *pNode)
     right_child = pNode->right_child;
     ch = pNode->ch;
 }
-bool Node::compare(Node a, Node b) { return a.cnt < b.cnt; }
+bool Node::compare(const Node a, const Node b) { return a.cnt < b.cnt; }
 
-int Reader::read_in_string() {
+void Reader::read_in_string() {
     char *in_buffer = nullptr;
     int length_in_buffer = 0;
     std::ifstream in(in_file, std::ifstream::binary);
@@ -526,8 +462,6 @@ int Reader::read_in_string() {
 
         in_buffer = new char[length_in_buffer];
 
-        //std::cout << "Reading " << length_buffer << " characters... ";
-
         in.read(in_buffer, length_in_buffer);
 
         if (in)
@@ -536,7 +470,7 @@ int Reader::read_in_string() {
         }
         else
         {
-            //std::cout << "error: only " << in.gcount() << " could be read"; //todo
+            throw ExceptionSameCharactersNotRead();
         }
 
         in.close();
@@ -546,10 +480,10 @@ int Reader::read_in_string() {
         }
 
         delete [] in_buffer;
-        return 0;
+        return;
     }
-    std::cout << "No such file" << std::endl;
-    return 1;
+
+    throw ExceptionFileNotFound();
 }
 
 void Writer::send()
@@ -564,30 +498,27 @@ void Writer::send()
     }
 
     outfile.write(buffer,size);
-
-    //delete[] buffer;
-
     outfile.close();
 }
 
 
-int Huffman::cast_char_to_int(char ch)
+int Huffman::cast_char_to_int(const char ch) const
 {
     return ((int)ch) + OFFSET;
 }
 
-int Huffman::cast_char_to_real_int(char ch)
+int Huffman::cast_char_to_real_int(const char ch) const
 {
     return ((int)ch);
 }
 
 
-char Huffman::cast_int_to_char(int n)
+char Huffman::cast_int_to_char(int n) const
 {
     return (char)(n - OFFSET);
 }
 
-char Huffman::cast_real_int_to_char(int n)
+char Huffman::cast_real_int_to_char(const int n)
 {
     return (char)(n);
 }
@@ -643,3 +574,15 @@ void Huffman::rec_delete_tree(Node *node)
 
     delete node;
 }
+
+const char *ExceptionFileNotFound::what() const throw()
+{
+    return "File not found\n";
+}
+
+const char *ExceptionSameCharactersNotRead::what() const throw()
+{
+    return "Same characters not read\n";
+}
+
+

@@ -16,7 +16,7 @@ struct Node
     Node * left_child;
     Node * right_child;
 
-    static bool compare(Node a, Node b);
+    static bool compare(const Node a, const Node b) ;
 };
 
 struct Reader
@@ -24,7 +24,7 @@ struct Reader
     char * in_file;
     std::vector<char> in_string;
 
-    int read_in_string();
+    void read_in_string();
 
     Reader(char *in);
     Reader();
@@ -44,12 +44,13 @@ struct Writer
 struct Huffman
 {
     static size_t const MAX_NUM_BY_CHAR = 256;
+    const int OFFSET = 128;
 
     std::vector<Node> leaves;
 
-    int cast_char_to_int(char ch);
-    char cast_int_to_char(int n);
-    int cast_char_to_real_int(char ch);
+    int cast_char_to_int(const char ch) const;
+    char cast_int_to_char(const int n) const;
+    int cast_char_to_real_int(const char ch) const;
 
 
     static void print_usage();
@@ -65,10 +66,7 @@ protected:
     std::string code_by_char[MAX_NUM_BY_CHAR];
     Node * root;
 
-    int OFFSET = 128;
-
     void clear_code_by_char();
-    //void print_code_by_char(std::string code_by_char[]);
 
     char cast_real_int_to_char(int n);
 
@@ -79,7 +77,7 @@ protected:
 
 struct Compression:public Huffman {
     Compression(char *in, char *out);
-    int compression();
+    void compression();
 
 private:
     void get_leaves();
@@ -103,7 +101,7 @@ private:
 
 struct Decompression:public Huffman {
     Decompression(char *in, char *out);
-    int decompression();
+    void decompression();
 
 private:
 
@@ -120,4 +118,12 @@ private:
     size_t get_letter(size_t position, std::vector<bool> & in_byte, Node * node);
 
     void get_vector_byte_by_char(std::vector<bool> &in_byte, char c);
+};
+
+struct ExceptionFileNotFound :public std::exception{
+    virtual const char *what() const throw();
+};
+
+struct ExceptionSameCharactersNotRead :public std::exception{
+    virtual const char *what() const throw();
 };

@@ -3,7 +3,6 @@
 
 int main(int argc, char ** argv)
 {
-
     if(argc < 6) {
         Huffman::print_usage();
         return 1;
@@ -32,23 +31,23 @@ int main(int argc, char ** argv)
         return 1;
     }
 
-    if(is_decompression) {
-        Decompression archiver(in, out);
-        int ret = archiver.decompression();
-        if(ret != 0) {
-            return 1;
+    try
+    {
+        if(is_decompression) {
+            Decompression archiver(in, out);
+            archiver.decompression();
         }
-    }
-    else {
-        Compression archiver(in, out);
-        int ret = archiver.compression();
-        if(ret != 0) {
-            return 1;
+        else {
+            Compression archiver(in, out);
+            archiver.compression();
         }
+    } catch (ExceptionFileNotFound exception) {
+        std::cout << exception.what();
+        return 1;
+    } catch (ExceptionSameCharactersNotRead exception) {
+        std::cout << exception.what();
+        return 1;
     }
-
-
-
 
 
 
