@@ -24,7 +24,7 @@ struct Reader
     char * in_file;
     std::vector<char> in_string;
 
-    void read_in_string();
+    int read_in_string();
 
     Reader(char *in);
     Reader();
@@ -79,7 +79,7 @@ protected:
 
 struct Compression:public Huffman {
     Compression(char *in, char *out);
-    void compression();
+    int compression();
 
 private:
     void get_leaves();
@@ -103,7 +103,7 @@ private:
 
 struct Decompression:public Huffman {
     Decompression(char *in, char *out);
-    void decompression();
+    int decompression();
 
 private:
 

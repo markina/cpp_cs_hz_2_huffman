@@ -34,11 +34,17 @@ int main(int argc, char ** argv)
 
     if(is_decompression) {
         Decompression archiver(in, out);
-        archiver.decompression();
+        int ret = archiver.decompression();
+        if(ret != 0) {
+            return 1;
+        }
     }
     else {
         Compression archiver(in, out);
-        archiver.compression();
+        int ret = archiver.compression();
+        if(ret != 0) {
+            return 1;
+        }
     }
 
 

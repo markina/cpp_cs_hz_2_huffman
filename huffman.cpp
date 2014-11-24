@@ -58,8 +58,12 @@
 //}
 
 
-void Compression::compression() {
-    reader.read_in_string();
+int Compression::compression() {
+    int ret = reader.read_in_string();
+    if(ret != 0) {
+        root = new Node();
+        return 1;
+    }
 
     std::cout << reader.in_string.size() << std::endl;
 
@@ -80,6 +84,9 @@ void Compression::compression() {
     std::cout << size_addition << std::endl;
 
     writer.send();
+
+    return 0;
+
 }
 
 void Compression::get_leaves()
@@ -269,8 +276,12 @@ size_t Decompression::get_letter(size_t position, std::vector<bool> & in_byte, N
 }
 
 
-void Decompression::decompression() {
-    reader.read_in_string();
+int Decompression::decompression() {
+    int ret = reader.read_in_string();
+    if(ret != 0) {
+        root = new Node();
+        return 1;
+    }
 
     std::cout << reader.in_string.size() << std::endl;
 
@@ -285,6 +296,7 @@ void Decompression::decompression() {
     std::cout << first_index_massage << std::endl;
 
     writer.send();
+    return 0;
 }
 
 void Decompression::get_tree()
@@ -502,7 +514,7 @@ Node::Node(Node *pNode)
 }
 bool Node::compare(Node a, Node b) { return a.cnt < b.cnt; }
 
-void Reader::read_in_string() {
+int Reader::read_in_string() {
     char *in_buffer = nullptr;
     int length_in_buffer = 0;
     std::ifstream in(in_file, std::ifstream::binary);
@@ -534,7 +546,10 @@ void Reader::read_in_string() {
         }
 
         delete [] in_buffer;
+        return 0;
     }
+    std::cout << "No such file" << std::endl;
+    return 1;
 }
 
 void Writer::send()
@@ -604,7 +619,10 @@ void Huffman::clear_code_by_char()
 
 void Huffman::delete_tree()
 {
-    rec_delete_tree(root);
+    if(root)
+    {
+        rec_delete_tree(root);
+    }
 }
 
 void Huffman::rec_delete_tree(Node *node)

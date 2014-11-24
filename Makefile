@@ -39,3 +39,12 @@ valgrind_u_empty:
 
 not_exit:
 	./huffman -c -f a.in -o a.out
+
+valgrind_not_exit:
+	valgrind ./huffman -c -f a.in -o a.out
+
+bad_usage:
+	./huffman -t -f empty.in -o empty.zzz
+
+valgrind_bad_usage:
+	valgrind ./huffman -t -f empty.in -o empty.zzz
