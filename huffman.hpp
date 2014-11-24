@@ -9,10 +9,10 @@ struct Node
     Node();
     ~Node();
     Node(Node *pNode);
-    Node(int cnt, char ch);
+    Node(int cnt, char ch) ;
 
-    char ch;
     int cnt;
+    char ch ;
     Node * left_child;
     Node * right_child;
 
@@ -43,7 +43,7 @@ struct Writer
 
 struct Huffman
 {
-    static int const MAX_NUM_BY_CHAR = 256;
+    static size_t const MAX_NUM_BY_CHAR = 256;
 
     std::vector<Node> leaves;
 
@@ -71,6 +71,10 @@ protected:
     //void print_code_by_char(std::string code_by_char[]);
 
     char cast_real_int_to_char(int n);
+
+    void delete_tree();
+
+    void rec_delete_tree(Node *pNode);
 };
 
 struct Compression:public Huffman {
@@ -109,11 +113,11 @@ private:
 
     void add_new_leave(int id_char, int l, std::string string, Node * node);
 
-    void put_decode_massage(int begin);
+    void put_decode_massage(size_t begin);
 
     void get_vector_byte_by_char(std::vector<bool> & in_byte, int left_byte, char c);
 
-    int get_letter(int position, std::vector<bool> & in_byte, Node * node);
+    size_t get_letter(size_t position, std::vector<bool> & in_byte, Node * node);
 
     void get_vector_byte_by_char(std::vector<bool> &in_byte, char c);
 };

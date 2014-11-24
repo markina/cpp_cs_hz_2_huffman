@@ -86,16 +86,16 @@ void Compression::get_leaves()
 {
     int cnt[MAX_NUM_BY_CHAR];
 
-    for(int i = 0; i < MAX_NUM_BY_CHAR; ++i) {
+    for(size_t i = 0; i < MAX_NUM_BY_CHAR; ++i) {
         cnt[i] = 0;
     }
 
-    for(int i = 0; i < reader.in_string.size(); ++i) {
+    for(size_t i = 0; i < reader.in_string.size(); ++i) {
         int num_by_char = cast_char_to_int(reader.in_string[i]);
         cnt[num_by_char]++;
     }
 
-    for(int i = 0; i < MAX_NUM_BY_CHAR; i++) {
+    for(size_t i = 0; i < MAX_NUM_BY_CHAR; i++) {
         if(cnt[i] != 0) {
             Node node(cnt[i], cast_int_to_char(i));
             leaves.push_back(node);
@@ -172,7 +172,7 @@ void Compression::rec_code_by_char(Node node, std::string cur_string)
 int Compression::get_size_msg()
 {
     int s = 0;
-    for(int i = 0; i < leaves.size(); i++) {
+    for(size_t i = 0; i < leaves.size(); i++) {
         s += leaves[i].cnt * code_by_char[cast_char_to_int((int)leaves[i].ch)].length();
     }
     return s;
@@ -181,7 +181,7 @@ int Compression::get_size_msg()
 void Compression::put_string_by_number(int n){
     std::vector<char> t;
     while(n > 0) {
-        t.push_back(char((int)'0' + n%10));
+        t.push_back(char((int)'0' + n % 10));
         n /= 10;
     }
 
@@ -198,10 +198,10 @@ void Compression::put_code_by_char()
     put_string_by_number(n);
     writer.out_string.push_back(' ');
 
-    for(int i = 0; i < MAX_NUM_BY_CHAR; i++) {
+    for(size_t i = 0; i < MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i].length() != 0) {
             writer.out_string.push_back(cast_int_to_char(i));
-            for(int j = 0; j < code_by_char[i].length(); j++) {
+            for(size_t j = 0; j < code_by_char[i].length(); j++) {
                 if (code_by_char[i][j] == '1')
                 {
                     writer.out_string.push_back('1');
@@ -227,8 +227,8 @@ void Compression::put_massage()
         out_byte.push_back(0);
     }
 
-    for(int i = 0; i < reader.in_string.size(); ++i) {
-        for(int j = 0; j < code_by_char[cast_char_to_int(reader.in_string[i])].length(); j++) {
+    for(size_t i = 0; i < reader.in_string.size(); ++i) {
+        for(size_t j = 0; j < code_by_char[cast_char_to_int(reader.in_string[i])].length(); j++) {
             if(code_by_char[cast_char_to_int(reader.in_string[i])][j] == '0') {
                 out_byte.push_back(0);
             } else {
@@ -237,7 +237,7 @@ void Compression::put_massage()
         }
     }
 
-    for(int i = 0; i < out_byte.size(); i += 8) {
+    for(size_t i = 0; i < out_byte.size(); i += 8) {
         writer.out_string.push_back(get_char_from_8_byte(i, out_byte));
     }
 
@@ -247,7 +247,7 @@ void Compression::put_massage()
 }
 
 
-int Decompression::get_letter(int position, std::vector<bool> & in_byte, Node * node)
+size_t Decompression::get_letter(size_t position, std::vector<bool> & in_byte, Node * node)
 {
     if(node->left_child == nullptr && node->right_child == nullptr) {
         writer.out_string.push_back(node->ch);
@@ -269,7 +269,7 @@ void Decompression::decompression() {
 
     std::cout << reader.in_string.size() << std::endl;
 
-    int first_index_massage = get_code_by_char();
+    size_t first_index_massage = get_code_by_char();
 
     get_tree();
 
@@ -285,7 +285,7 @@ void Decompression::decompression() {
 void Decompression::get_tree()
 {
     root = new Node();
-    for(int i = 0; i < MAX_NUM_BY_CHAR; i++) {
+    for(size_t i = 0; i < MAX_NUM_BY_CHAR; i++) {
         if(code_by_char[i] != "")
         {
             add_new_leave(i, 0, code_by_char[i], root);
@@ -298,7 +298,7 @@ int Decompression::get_code_by_char()
     //print_in_string(reader.in_string);
 
     int n = 0;
-    int i = 0;
+    size_t i = 0;
     for(; i < reader.in_string.size(); ++i) {
         if(reader.in_string[i] == ' ') {
             i++;
@@ -333,7 +333,7 @@ int Decompression::get_code_by_char()
 
 void Decompression::add_new_leave(int id_char, int l, std::string string, Node * node)
 {
-    for (int i = l; i < string.length(); i++)
+    for (size_t i = l; i < string.length(); i++)
     {
         if (string[i] == '0')
         {
@@ -385,7 +385,7 @@ void Decompression::add_new_leave(int id_char, int l, std::string string, Node *
 }
 
 
-void Decompression::put_decode_massage(int begin)
+void Decompression::put_decode_massage(size_t begin)
 {
     char c = reader.in_string[begin];
     int bad_zero = c - '0';
@@ -397,14 +397,14 @@ void Decompression::put_decode_massage(int begin)
 
 
     ///////////////stop
-    for(int i = begin + 2; i < reader.in_string.size(); i++) {
+    for(size_t i = begin + 2; i < reader.in_string.size(); i++) {
         char c = reader.in_string[i];
         get_vector_byte_by_char(in_byte, c);
     }
 
     //print_byte(in_byte);
 
-    int i = 0;
+    size_t i = 0;
     while(i < in_byte.size())
     {
         i = get_letter(i, in_byte, root);
@@ -476,7 +476,9 @@ Decompression::Decompression(char *in, char *out) : Huffman(in, out) {}
 Compression::Compression(char *in, char *out) : Huffman(in, out) {}
 Huffman::Huffman(char *in, char *out) : reader(in), writer(out) {}
 Huffman::Huffman() {  }
-Huffman::~Huffman() {    /*delete [] buffer;*/ }
+Huffman::~Huffman() {
+    delete_tree();
+}
 Writer::Writer() {}
 Reader::Reader() {}
 Reader::Reader(char *in) : in_file(in) {}
@@ -518,11 +520,14 @@ void Reader::read_in_string() {
         {
             //std::cout << "error: only " << in.gcount() << " could be read"; //todo
         }
+
         in.close();
-    }
-    for(int i = 0; i < length_in_buffer; i++)
-    {
-        in_string.push_back(in_buffer[i]);
+        for (int i = 0; i < length_in_buffer; i++)
+        {
+            in_string.push_back(in_buffer[i]);
+        }
+
+        delete in_buffer;
     }
 }
 
@@ -530,10 +535,10 @@ void Writer::send()
 {
     std::ofstream outfile (out_file, std::ofstream::binary);
 
-    unsigned long size =  out_string.size();
+    size_t size =  out_string.size();
     char buffer[size];
 
-    for(int j = 0; j < size; ++j) {
+    for(size_t j = 0; j < size; ++j) {
         buffer[j] = out_string[j];
     }
 
@@ -585,8 +590,30 @@ char Compression::get_char_from_8_byte(int begin, std::vector<bool> & byte)
 void Huffman::clear_code_by_char()
 {
 
-    for(int j = 0; j < MAX_NUM_BY_CHAR; ++j) {
+    for(size_t j = 0; j < MAX_NUM_BY_CHAR; ++j) {
         code_by_char[j] = "";
     }
 
+}
+
+void Huffman::delete_tree()
+{
+    rec_delete_tree(root);
+}
+
+void Huffman::rec_delete_tree(Node *node)
+{
+//    if(node->left_child == nullptr && node->right_child == nullptr) {
+//
+//        return;
+//    }
+//
+//    if(node.left_child != nullptr)
+//    {
+//        rec_code_by_char(node.left_child, cur_string + "0");
+//    }
+//    if(node.right_child != nullptr)
+//    {
+//        rec_code_by_char(node.right_child, cur_string + "1");
+//    }
 }
