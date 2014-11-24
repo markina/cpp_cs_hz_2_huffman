@@ -68,7 +68,7 @@ protected:
     int OFFSET = 128;
 
     void clear_code_by_char();
-    void print_code_by_char(std::string code_by_char[]);
+    //void print_code_by_char(std::string code_by_char[]);
 
     char cast_real_int_to_char(int n);
 };

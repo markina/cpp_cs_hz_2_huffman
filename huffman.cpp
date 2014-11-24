@@ -5,62 +5,61 @@
 #include <cstring>
 #include <algorithm>
 
-void print_vector_cnt(std::vector<Node> leaves)
-{
-    for(int i = 0; i < leaves.size(); i++) {
-        std::cout << "Count: " << leaves[i].ch << " = " << leaves[i].cnt << std::endl;
-    }
-}
-
-void print_byte(std::vector<bool> byte) {
-    std::cout << "bute: ";
-    for(int i = 0; i < byte.size(); i++) {
-        std::cout << byte[i];
-    }
-    std::cout << std::endl;
-}
-
-void Huffman::print_code_by_char(std::string code_by_char[])
-{
-    std::cout << "\n";
-    for(int i = 0; i < 256; i++) {
-        if(code_by_char[i].length() != 0) {
-            std::cout << "Code: " << cast_int_to_char(i) << "->" << code_by_char[i] << std::endl;
-        }
-    }
-}
-
-void print_out_string(std::vector<char> out_string)
-{
-    std::cout << std::endl;
-    for(int i = 0; i < out_string.size(); i++) {
-        std::cout << out_string[i];
-    }
-    std::cout << std::endl;
-}
-
-void print_in_string(std::vector<char> in_string)
-{
-    std::cout << std::endl;
-    for(int i = 0; i < in_string.size(); i++) {
-    std::cout << in_string[i];
-    }
-    std::cout << std::endl;
-}
-
-void print_decode_massage(std::vector<char> vector)
-{
-    std::cout << "result::::::";
-    for(int i = 0; i < vector.size(); i++) {
-        std::cout << vector[i];
-    }
-
-}
+//void print_vector_cnt(std::vector<Node> leaves)
+//{
+//    for(int i = 0; i < leaves.size(); i++) {
+//        std::cout << "Count: " << leaves[i].ch << " = " << leaves[i].cnt << std::endl;
+//    }
+//}
+//
+//void print_byte(std::vector<bool> byte) {
+//    std::cout << "bute: ";
+//    for(int i = 0; i < byte.size(); i++) {
+//        std::cout << byte[i];
+//    }
+//    std::cout << std::endl;
+//}
+//
+//void Huffman::print_code_by_char(std::string code_by_char[])
+//{
+//    std::cout << "\n";
+//    for(int i = 0; i < 256; i++) {
+//        if(code_by_char[i].length() != 0) {
+//            std::cout << "Code: " << cast_int_to_char(i) << "->" << code_by_char[i] << std::endl;
+//        }
+//    }
+//}
+//
+//void print_out_string(std::vector<char> out_string)
+//{
+//    std::cout << std::endl;
+//    for(int i = 0; i < out_string.size(); i++) {
+//        std::cout << out_string[i];
+//    }
+//    std::cout << std::endl;
+//}
+//
+//void print_in_string(std::vector<char> in_string)
+//{
+//    std::cout << std::endl;
+//    for(int i = 0; i < in_string.size(); i++) {
+//    std::cout << in_string[i];
+//    }
+//    std::cout << std::endl;
+//}
+//
+//void print_decode_massage(std::vector<char> vector)
+//{
+//    std::cout << "result::::::";
+//    for(int i = 0; i < vector.size(); i++) {
+//        std::cout << vector[i];
+//    }
+//
+//}
 
 
 void Compression::compression() {
     reader.read_in_string();
-
 
     get_leaves();
 
@@ -95,13 +94,22 @@ void Compression::get_leaves()
         }
     }
     std::sort(leaves.begin(), leaves.end(), Node::compare);
-    print_vector_cnt(leaves);
+    //print_vector_cnt(leaves);
 }
 
 
 void Compression::get_tree(std::vector<Node> leaves)
 {
-    if(leaves.size() == 0) { return; }
+    if(leaves.size() == 0) {
+        root = new Node();
+        return;
+    }
+
+    if(leaves.size() == 1) {
+        root = new Node();
+        root->left_child = new Node(leaves[0]);
+        return;
+    }
 
     size_t i_leaves = 0;
     while(i_leaves < leaves.size() - 1) {
@@ -129,9 +137,10 @@ void Compression::get_tree(std::vector<Node> leaves)
 void Compression::get_code_by_char() {
     clear_code_by_char();
 
+
     rec_code_by_char(root, "");
 
-    print_code_by_char(code_by_char);
+    //print_code_by_char(code_by_char);
 }
 
 void Compression::rec_code_by_char(Node node, std::string cur_string)
@@ -196,7 +205,7 @@ void Compression::put_code_by_char()
             writer.out_string.push_back(' ');
         }
     }
-    print_out_string(writer.out_string);
+    //print_out_string(writer.out_string);
 }
 
 void Compression::put_massage()
@@ -224,9 +233,9 @@ void Compression::put_massage()
         writer.out_string.push_back(get_char_from_8_byte(i, out_byte));
     }
 
-    print_byte(out_byte);
+    //print_byte(out_byte);
 
-    print_out_string(writer.out_string);
+    //print_out_string(writer.out_string);
 }
 
 
@@ -274,7 +283,7 @@ void Decompression::get_tree()
 
 int Decompression::get_code_by_char()
 {
-    print_in_string(reader.in_string);
+    //print_in_string(reader.in_string);
 
     int n = 0;
     int i = 0;
@@ -287,7 +296,7 @@ int Decompression::get_code_by_char()
         n += reader.in_string[i] - '0';
     }
 
-    std::cout << "n = " << n << "\n"; //
+    //std::cout << "n = " << n << "\n"; //
 
     clear_code_by_char();
 
@@ -303,7 +312,7 @@ int Decompression::get_code_by_char()
         }
     }
 
-    print_code_by_char(code_by_char);
+    //print_code_by_char(code_by_char);
     return i;
 }
 
@@ -381,7 +390,7 @@ void Decompression::put_decode_massage(int begin)
         get_vector_byte_by_char(in_byte, c);
     }
 
-    print_byte(in_byte);
+    //print_byte(in_byte);
 
     int i = 0;
     while(i < in_byte.size())
@@ -393,7 +402,7 @@ void Decompression::put_decode_massage(int begin)
 
 
 
-    print_decode_massage(writer.out_string);
+    //print_decode_massage(writer.out_string);
 
 }
 
@@ -549,7 +558,7 @@ char Compression::get_char_from_8_byte(int begin, std::vector<bool> & byte)
 {
     int id_char = 0;
     int end = begin + 8;
-    for(int j = 128; j > 0, begin < end; begin++, j /= 2) {
+    for(int j = 128; j > 0 && begin < end; begin++, j /= 2) {
         if(j == 128) {
             id_char += byte[begin] * (-j);
         }
