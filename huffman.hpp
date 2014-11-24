@@ -74,7 +74,7 @@ protected:
 
     void delete_tree();
 
-    void rec_delete_tree(Node *pNode);
+    void rec_delete_tree(Node * pNode);
 };
 
 struct Compression:public Huffman {

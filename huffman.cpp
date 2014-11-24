@@ -121,13 +121,19 @@ void Compression::get_tree(std::vector<Node> leaves)
 
     size_t i_leaves = 0;
     while(i_leaves < leaves.size() - 1) {
-        Node first = new Node (leaves[i_leaves]);
-        Node second = new Node (leaves[i_leaves + 1]);
-        Node *newNode = new Node(first.cnt + second.cnt, first.ch);
+        Node * first = new Node (leaves[i_leaves]);
+        Node * second = new Node (leaves[i_leaves + 1]);
+        Node * newNode = new Node(first->cnt + second->cnt, first->ch);
         newNode->left_child = new Node(first);
         newNode->right_child = new Node(second);
         leaves[i_leaves + 1] = new Node (newNode);
         i_leaves++;
+        delete first;
+        delete second;
+
+        //delete newNode->left_child;
+        //delete newNode->right_child;
+        delete newNode;
         for(size_t j = i_leaves; j < leaves.size() - 1; j++) {
             if(leaves[j].cnt > leaves[j+1].cnt) {
                 std::swap(leaves[j], leaves[j+1]);
@@ -422,18 +428,18 @@ void Decompression::get_vector_byte_by_char(std::vector<bool> &in_byte, char c) 
 
     int num = cast_char_to_real_int(c);
     for(int i = 128; i > 0; i /= 2) {
-            if(i == 128) {
-                in_byte.push_back(num < 0);
-                if(num < 0)
-                {
-                    num += 128;
-                }
-            }
-            else
+        if(i == 128) {
+            in_byte.push_back(num < 0);
+            if(num < 0)
             {
-                in_byte.push_back((num / i) == 1);
-                num %= i;
+                num += 128;
             }
+        }
+        else
+        {
+            in_byte.push_back((num / i) == 1);
+            num %= i;
+        }
     }
 }
 
@@ -527,7 +533,7 @@ void Reader::read_in_string() {
             in_string.push_back(in_buffer[i]);
         }
 
-        delete in_buffer;
+        delete [] in_buffer;
     }
 }
 
@@ -603,17 +609,19 @@ void Huffman::delete_tree()
 
 void Huffman::rec_delete_tree(Node *node)
 {
-//    if(node->left_child == nullptr && node->right_child == nullptr) {
-//
-//        return;
-//    }
-//
-//    if(node.left_child != nullptr)
-//    {
-//        rec_code_by_char(node.left_child, cur_string + "0");
-//    }
-//    if(node.right_child != nullptr)
-//    {
-//        rec_code_by_char(node.right_child, cur_string + "1");
-//    }
+    if(node->left_child == nullptr && node->right_child == nullptr) {
+        delete node;
+        return;
+    }
+
+    if(node->left_child != nullptr)
+    {
+        rec_delete_tree(node->left_child);
+    }
+    if(node->right_child != nullptr)
+    {
+        rec_delete_tree(node->right_child);
+    }
+
+    delete node;
 }
