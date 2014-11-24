@@ -61,6 +61,8 @@
 void Compression::compression() {
     reader.read_in_string();
 
+    std::cout << reader.in_string.size() << std::endl;
+
     get_leaves();
 
     get_tree(leaves);
@@ -69,7 +71,13 @@ void Compression::compression() {
 
     put_code_by_char();
 
+    size_t size_addition = writer.out_string.size();
+
     put_massage();
+
+    std::cout << writer.out_string.size() << std::endl;
+
+    std::cout << size_addition << std::endl;
 
     writer.send();
 }
@@ -252,20 +260,24 @@ int Decompression::get_letter(int position, std::vector<bool> & in_byte, Node * 
         return get_letter(position + 1, in_byte, node->left_child);
     }
 
-
     return 0;
-
 }
 
 
 void Decompression::decompression() {
     reader.read_in_string();
 
+    std::cout << reader.in_string.size() << std::endl;
+
     int first_index_massage = get_code_by_char();
 
     get_tree();
 
     put_decode_massage(first_index_massage);
+
+    std::cout << writer.out_string.size() << std::endl;
+
+    std::cout << first_index_massage << std::endl;
 
     writer.send();
 }
